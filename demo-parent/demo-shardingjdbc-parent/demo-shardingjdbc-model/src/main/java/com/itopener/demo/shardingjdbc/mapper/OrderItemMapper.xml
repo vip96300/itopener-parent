@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itopener.demo.shardingjdbc.mapper.OrderItemMapper">
+
+	<resultMap id="BaseResultMap" type="com.itopener.demo.shardingjdbc.model.OrderItem">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="order_id" property="orderId" jdbcType="BIGINT" />
+		<result column="user_id" property="userId" jdbcType="BIGINT" />
+		<result column="state" property="state" jdbcType="INTEGER" />
+		<result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+	</resultMap>
+
+	<sql id="Column_List">
+		id, order_id, user_id, state, update_time
+	</sql>
+
+	<sql id="Where">
+		<where>
+			<if test="userId > 0">
+				and user_id = #{userId,jdbcType=BIGINT}
+			</if>
+			<if test="orderId > 0">
+				and order_id = #{orderId,jdbcType=BIGINT}
+			</if>
+			<if test="id > 0">
+				and id = #{id,jdbcType=BIGINT}
+			</if>
+		</where>
+	</sql>
+
+	<select id="select" parameterType="com.itopener.demo.shardingjdbc.conditions.OrderItemCondition" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from t_order_item
+		<include refid="Where" />
+		<if test="orderBy != null and orderBy != ''">
+			order by ${orderBy}
+		</if>
+	</select>
+
+	<select id="selectCount" parameterType="com.itopener.demo.shardingjdbc.conditions.OrderItemCondition" resultType="java.lang.Long">
+		select count(id)
+		from t_order_item
+		<include refid="Where" />
+	</select>
+
+	<select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from t_order_item
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.itopener.demo.shardingjdbc.model.OrderItem">
+		insert into t_order_item(<include refid="Column_List" />)
+		values (
+			#{id,jdbcType=BIGINT},
+			#{orderId,jdbcType=BIGINT},
+			#{userId,jdbcType=BIGINT},
+			#{state,jdbcType=INTEGER},
+			#{updateTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<update id="update" parameterType="com.itopener.demo.shardingjdbc.model.OrderItem">
+		update t_order_item
+		set
+			order_id = #{orderId,jdbcType=BIGINT},
+			user_id = #{userId,jdbcType=BIGINT},
+			state = #{state,jdbcType=INTEGER},
+			update_time = #{updateTime,jdbcType=TIMESTAMP}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+
+	<delete id="delete" parameterType="com.itopener.demo.shardingjdbc.model.OrderItem">
+		delete from t_order_item
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+
+	<delete id="deleteByOrderId" parameterType="com.itopener.demo.shardingjdbc.model.OrderItem">
+		delete from t_order_item
+		where order_id = #{orderId,jdbcType=BIGINT}
+	</delete>
+</mapper>

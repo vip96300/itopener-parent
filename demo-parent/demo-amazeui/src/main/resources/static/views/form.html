@@ -1,0 +1,66 @@
+<div class="am-cf am-padding-xs am-padding-bottom-0">
+	<div class="am-fl am-cf">
+		<strong class="am-text-primary am-text-lg">前端示例Amazeui</strong> / <small>表单示例</small>
+	</div>
+</div>
+<hr class="am-margin-xs"/>
+<form class="am-form am-form-horizontal am-margin-right-sm" role="form" id="editForm">
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<label for="attr1" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">属性一：</label>
+		<div class="am-u-sm-10 am-padding-left-0 am-padding-right-0">
+			<input type="text" class="am-form-field" name="attr1" />
+		</div>
+	</div>
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<label for="attr2" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">属性二：</label>
+		<div class="am-u-sm-10 am-padding-left-0 am-padding-right-0">
+			<select class="am-form-field" name="attr2">
+				<option value="option1">选项一...</option>
+				<option value="option2">选项二.....</option>
+				<option value="option3">选项三........</option>
+			</select>
+		</div>
+	</div>
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<label for="attr3" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">属性三：</label>
+		<div class="am-u-sm-10 am-padding-left-0 am-padding-right-0">
+			<input type="text" class="am-form-field" name="attr3" id="datepickerCondition" placeholder="选择时间" data-am-datepicker="{format: 'yyyy-mm-dd'}" />
+		</div>
+	</div>
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<label for="attr4" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">属性四：</label>
+		<div class="am-u-sm-10 am-padding-left-0 am-padding-right-0 am-u-end">
+			<label class="am-radio-inline">
+				<input type="radio" name="attr4" value="1" data-am-ucheck checked="checked"> 正常
+			</label>
+			<label class="am-radio-inline">
+				<input type="radio" name="attr4" value="2" data-am-ucheck> 禁用
+			</label>
+		</div>
+	</div>
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<label for="attr5" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">属性五：</label>
+		<div class="am-u-sm-10 am-padding-left-0 am-padding-right-0 am-u-end">
+			<textarea class="am-form-field vfor" rows="3" cols="" name="attr5"></textarea>
+		</div>
+	</div>
+	<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+		<div class="am-u-sm-10 am-u-sm-offset-2 am-padding-left-xs">
+			<button type="button" id="saveBtn" class="am-btn am-btn-sm am-btn-primary"><i class="am-icon-save"></i>&nbsp;保存</button>
+			<button type="reset" class="am-btn am-btn-sm am-btn-default"><i class="am-icon-undo"></i>&nbsp;重置</button>
+		</div>
+	</div>
+</form>
+
+<script>
+(function() {
+	$('#saveBtn').on('click', function(){
+		layer.msg('保存');
+	});
+	$('#datepickerCondition').datepicker().on('changeDate.datepicker.amui', function(event) {
+		$('#datepickerCondition').val(event.target.defaultValue);
+	});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itopener.demo.shardingjdbc.mapper.SysIpMapper">
+
+	<resultMap id="BaseResultMap" type="com.itopener.demo.shardingjdbc.model.SysIp">
+		<id column="id" jdbcType="BIGINT" property="id" />
+		<result column="ip_address" jdbcType="VARCHAR" property="ipAddress" />
+		<result column="data_center_id" jdbcType="BIGINT" property="dataCenterId" />
+		<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	</resultMap>
+
+	<sql id="Insert_Column_List">
+		ip_address, data_center_id, create_time
+	</sql>
+
+	<sql id="Column_List">
+		id, <include refid="Insert_Column_List" />
+	</sql>
+
+	<sql id="Where">
+		<where>
+			<if test="id > 0">
+				and id = #{id,jdbcType=BIGINT}
+			</if>
+			<if test="ipAddress != null and ipAddress != ''">
+				and ip_address = #{ipAddress,jdbcType=VARCHAR}
+			</if>
+		</where>
+	</sql>
+	
+	<select id="select" parameterType="com.itopener.demo.shardingjdbc.conditions.SysIpCondition" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from t_sys_ip
+		<include refid="Where" />
+		<if test="orderBy != null and orderBy != ''">
+			order by ${orderBy}
+		</if>
+	</select>
+
+	<select id="selectCount" parameterType="com.itopener.demo.shardingjdbc.conditions.SysIpCondition" resultType="java.lang.Long">
+		select count(id)
+		from t_sys_ip
+		<include refid="Where" />
+	</select>
+
+	<select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from t_sys_ip
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+	
+	<select id="selectByIpAddress" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from t_sys_ip
+		where ip_address = #{ipAddress,jdbcType=VARCHAR}
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.itopener.demo.shardingjdbc.model.SysIp">
+		insert into t_sys_ip(<include refid="Insert_Column_List" />)
+		values (
+			#{ipAddress,jdbcType=VARCHAR},
+			#{dataCenterId,jdbcType=BIGINT}, 
+			#{createTime,jdbcType=TIMESTAMP})
+	</insert>
+
+	<update id="update" parameterType="com.itopener.demo.shardingjdbc.model.SysIp">
+		update t_sys_ip
+		set
+			ip_address = #{ipAddress,jdbcType=VARCHAR},
+			data_center_id = #{dataCenterId,jdbcType=BIGINT}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+
+	<delete id="delete" parameterType="com.itopener.demo.shardingjdbc.model.SysIp">
+		delete from t_sys_ip
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+</mapper>
