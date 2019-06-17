@@ -1,0 +1,99 @@
+<div class="am-cf am-padding-xs am-padding-bottom-0">
+	<div class="am-fl am-cf">
+		<strong class="am-text-primary am-text-lg">redis管理工具</strong> / <small>key查询</small>
+	</div>
+</div>
+<hr class="am-margin-xs"/>
+<form class="am-form am-form-horizontal am-margin-right-sm" role="form" id="queryForm">
+	<ul class="am-avg-sm-1 am-avg-md-2 am-avg-lg-3 am-thumbnails">
+		<li class="am-padding-0">
+			<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+				<label for="name" class="am-u-sm-4 am-form-label am-text-right am-padding-left-0 am-padding-right-0">keys：</label>
+				<div class="am-u-sm-8 am-padding-left-0 am-padding-right-0">
+					<input type="text" class="am-form-field keyPattern" placeholder="注意：jdk序列化只支持全匹配" />
+				</div>
+			</div>
+		</li>
+		<li class="am-padding-0">
+			<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+				<div class="am-u-sm-12 am-padding-left-xs am-padding-right-0">
+					<button type="button" id="queryBtn" class="am-btn am-btn-sm am-btn-primary"><i class="am-icon-search"></i>&nbsp;查询</button>
+					<button type="reset" class="am-btn am-btn-sm am-btn-default"><i class="am-icon-undo"></i>&nbsp;重置</button>
+				</div>
+			</div>
+		</li>
+	</ul>
+</form>
+<hr class="am-margin-xs"/>
+<div class="am-scrollable-horizontal">
+	<table class="am-table am-table-bordered am-table-striped am-table-hover am-table-compact am-table-centered am-margin-bottom-xs">
+		<thead>
+			<tr class="am-text-nowrap">
+				<th>序号</th>
+				<th>key</th>
+				<th>操作</th>
+			</tr>
+			<tr class="am-hide" id="tableTmpl">
+				<td class="am-text-nowrap">{{index}}</td>
+				<td class="am-text-nowrap">{{key}}</td>
+				<td>
+					<div class="am-btn-toolbar">
+						<div class="am-btn-group am-btn-group-xs">
+							<button type="button" class="am-btn am-btn-primary queryValueBtn" data-key="{{key}}"><i class="am-icon-search"></i>&nbsp;查询</button>
+						</div>
+					</div>
+				</td>
+			</tr>
+		</thead>
+		<tbody id="tableBody"></tbody>
+	</table>
+</div>
+<script>
+(function(){
+	$('#queryBtn').on('click', function(){
+		var keyPattern = $('#queryForm .keyPattern').val();
+		if(!keyPattern){
+			$('#queryForm .keyPattern').focus();
+			return false;
+		}
+		$.ajax({
+			url: basePath + 'redis/keys',
+			type: 'get',
+			data: {
+				pattern: keyPattern
+			},
+			dataType: 'json',
+			success: function(data){
+				if(data.keys.length < 1){
+					layer.msg("没有对应的key");
+					return false;
+				}
+				$('#tableBody').empty();
+				for(var i=0; i<data.keys.length; i++){
+					var html = $.format($('#tableTmpl').html(), {key: data.keys[i], index: i + 1});
+					$('#tableBody').append('<tr>' + html + '</tr>');
+				}
+			}
+		});
+	});
+	
+	function decode(s) {
+	    return unescape(s.replace(/\\(u[0-9a-fA-F]{4})/gm, '%$1'));
+	}
+	
+	$('#tableBody').on('click', '.queryValueBtn', function(){
+		var key = $(this).data('key');
+		var td = $(this).parent();
+		$.ajax({
+			url: basePath + 'redis/keys/' + key,
+			type: 'get',
+			dataType: 'json',
+			success: function(data){
+				td.html('查询结果：过期时间：[' + data.expire + ']秒; 数据类型：[' + data.dataType + ']; 数据：[' + (decode(data.value) || '') + ']; ');
+			}
+		});
+	});
+})();
+</script>
+</body>
+</html>

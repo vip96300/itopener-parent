@@ -1,0 +1,164 @@
+<div class="am-cf am-padding-xs am-padding-bottom-0">
+	<div class="am-fl am-cf">
+		<strong class="am-text-primary am-text-lg">Zookeeper管理工具</strong> / <small>数据查询</small>
+	</div>
+	<div class="am-fr am-cf">
+		<button type="button" class="am-btn am-btn-xs am-btn-primary" id="toAddBtn">
+			<i class="am-icon-plus"></i>&nbsp;新增
+		</button>
+		<button type="button" class="am-btn am-btn-xs am-btn-primary" id="refreshBtn">
+			<i class="am-icon-refresh"></i>&nbsp;刷新
+		</button>
+	</div>
+</div>
+<hr class="am-margin-xs"/>
+
+<div class="am-g am-padding-left-xs am-padding-right-xs">
+	<div class="am-u-sm-6 am-border">
+		<ul class="ztree" id="nodeTree"></ul>
+	</div>
+	<div class="am-u-sm-6 am-border">
+		<hr class="am-margin-top-xs am-margin-bottom-xs"/>
+		<div id="nodeInfo">
+			<form class="am-form am-form-horizontal am-margin-right-sm" role="form" id="editFrom">
+				<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+					<label for="name" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">节点：</label>
+					<div class="am-u-sm-9 am-padding-left-0 am-padding-right-0 am-u-end">
+						<input type="text" class="am-form-field" name="nodePath" readonly="readonly" />
+					</div>
+				</div>
+				<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+					<label for="name" class="am-u-sm-2 am-form-label am-text-right am-padding-left-0 am-padding-right-0">数据：</label>
+					<div class="am-u-sm-9 am-padding-left-0 am-padding-right-0 am-u-end">
+						<textarea class="am-form-field" rows="5" cols="" name="nodeData"></textarea>
+					</div>
+				</div>
+				<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+					<div class="am-u-sm-offset-2 am-u-sm-9 am-padding-left-0 am-padding-right-0 am-u-end">
+						<button type="button" class="am-btn am-btn-xs am-btn-primary" id="saveBtn">
+							<i class="am-icon-save"></i>&nbsp;保存
+						</button>
+						<button type="button" class="am-btn am-btn-xs am-btn-primary" id="deleteBtn">
+							<i class="am-icon-trash-o"></i>&nbsp;删除
+						</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<script>
+(function(){
+	$(function(){
+		refresh();
+	});
+	
+	function refresh(){
+		$.ajax({
+			url: basePath + 'zk/nodes/root',
+			type: 'get',
+			dataType: 'json',
+			success: function(data){
+				if(data.nodes.length < 1){
+					layer.msg("没有获取到节点");
+					return false;
+				}
+				
+				var zTreeObj;
+				var setting = {
+					view: {
+						selectedMulti: false
+					},
+					callback: {
+						onClick: function(event, treeId, treeNode){
+							var nodes = treeNode.getPath();
+							var nodePath = '';
+							for(var node in nodes){
+								nodePath += ',' + nodes[node].name;
+							}
+							$.ajax({
+								url: basePath + 'zk/children/' + nodePath,
+								type: 'get',
+								dataType: 'json',
+								shade: 2,
+								success: function(data){
+									zTreeObj.removeChildNodes(treeNode);
+// 									layer.tips(data.nodeData || '[此节点无数据]' + (data.nodes ? '' : '<br/>[没有获取到子节点]'), '#' + treeNode.tId);
+									for(var index in data.nodes){
+										zTreeObj.addNodes(treeNode, {name: data.nodes[index]});
+									}
+									$('#editFrom input[name="nodePath"]').prop('readonly', true);
+									$('#editFrom input[name="nodePath"]').val(data.nodePath);
+									$('#editFrom textarea[name="nodeData"]').val(data.nodeData);
+								}
+							});
+						}
+					}
+				};
+				var zTreeNodes = new Array();
+				for(var i=0; i<data.nodes.length; i++){
+					zTreeNodes.push({
+						name: data.nodes[i]
+// 						iconSkin: 'am-icon-tree'
+// 						iconOpen:"/img/open.gif",
+// 						iconClose:"/img/close.gif"
+					});
+				}
+
+				zTreeObj = $.fn.zTree.init($("#nodeTree"), setting, zTreeNodes);
+			}
+		});
+	}
+
+	$('#refreshBtn').on('click', function() {
+		refresh();
+	});
+	
+	$('#toAddBtn').on('click', function(){
+		$('#editFrom')[0].reset();
+		$('#editFrom input[name="nodePath"]').prop('readonly', false);
+	});
+	
+	$('#saveBtn').on('click', function(){
+		var nodePath = $('#editFrom input[name="nodePath"]').val();
+		var nodeData = $('#editFrom textarea[name="nodeData"]').val();
+		$.ajax({
+			url: basePath + 'zk/node',
+			type: 'post',
+			dataType: 'json',
+			data: {
+				nodePath: nodePath,
+				nodeData: nodeData
+			},
+			success: function(data){
+				layer.confirm('保存数据成功，是否需要刷新？', {icon: 3, title:'提示'}, function(index){
+					$('#editFrom')[0].reset();
+					refresh();
+					layer.close(index);
+				});
+			}
+		});
+	});
+	
+	$('#deleteBtn').on('click', function(){
+		var nodePath = $('#editFrom input[name="nodePath"]').val();
+		$.ajax({
+			url: basePath + 'zk/node/delete',
+			type: 'post',
+			dataType: 'json',
+			data: {
+				nodePath: nodePath
+			},
+			success: function(data){
+				layer.confirm('删除节点成功，是否需要刷新？', {icon: 3, title:'提示'}, function(index){
+					$('#editFrom')[0].reset();
+					refresh();
+					layer.close(index);
+				});
+			}
+		});
+	});
+})();
+</script>
+</body>
+</html>

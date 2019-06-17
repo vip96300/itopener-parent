@@ -1,0 +1,155 @@
+<div class="am-cf am-padding-xs am-padding-bottom-0">
+	<div class="am-fl am-cf">
+		<strong class="am-text-primary am-text-lg">Spring Cloud Zuul网关路由限流管理工具</strong> / <small>网关操作</small>
+	</div>
+</div>
+<hr class="am-margin-xs"/>
+<form class="am-form am-form-horizontal am-margin-right-sm" role="form" id="queryForm">
+	<ul class="am-avg-sm-2 am-avg-md-2 am-avg-lg-2 am-thumbnails">
+		<li class="am-padding-0">
+			<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+				<label for="name" class="am-u-sm-4 am-form-label am-text-right am-padding-left-0 am-padding-right-0">Zuul服务id：</label>
+				<div class="am-u-sm-8 am-padding-left-0 am-padding-right-0">
+					<textarea cols="" rows="10" class="am-form-field" id="zuulUrls" placeholder="多个url使用英文逗号分隔"></textarea>
+				</div>
+			</div>
+		</li>
+		<li class="am-padding-0">
+			<div class="am-form-group am-form-group-sm am-margin-bottom-xs">
+				<div class="am-u-sm-12 am-padding-left-xs am-padding-right-0">
+					<button type="button" id="refreshBtn" class="am-btn am-btn-sm am-btn-primary"><i class="am-icon-refresh"></i>&nbsp;刷新</button>
+					<button type="reset" class="am-btn am-btn-sm am-btn-default"><i class="am-icon-undo"></i>&nbsp;重置</button>
+				</div>
+			</div>
+		</li>
+	</ul>
+</form>
+<hr class="am-margin-xs"/>
+<div class="am-scrollable-horizontal">
+	<table class="am-table am-table-bordered am-table-striped am-table-hover am-table-compact am-table-centered am-margin-bottom-xs">
+		<thead>
+			<tr class="am-text-nowrap">
+				<th>Zuul url</th>
+				<th>刷新结果</th>
+			</tr>
+			<tr class="am-hide" id="tableTmpl">
+				<td class="am-text-nowrap">{{url}}</td>
+				<td class="am-text-nowrap">{{result}}</td>
+			</tr>
+		</thead>
+		<tbody id="tableBody"></tbody>
+	</table>
+</div>
+<script>
+(function(){
+	$('#refreshBtn').on('click', function(){
+		var zuulUrls = $('#zuulUrls').val();
+		if(!zuulUrls){
+			layer.msg('请输入zuul网关地址');
+			return false;
+		}
+		
+		$.ajax({
+			url: basePath + 'zuul/refresh',
+			type: 'get',
+			dataType: 'json',
+			data: {
+				zuulUrl: zuulUrls
+			},
+			success: function(data){
+				
+				$('#tableBody').empty();
+				if(data.refreshs.length < 1){
+					$('#tableBody').append('<tr><td colspan="2">暂时没有符合条件的数据</td></tr>');
+					return false;
+				}
+				for(var i=0; i<data.refreshs.length; i++){
+					var html = $.format($('#tableTmpl').html(), data.refreshs[i]);
+					$('#tableBody').append('<tr>' + html + '</tr>');
+				}
+			}
+		});
+	});
+	
+	$('#saveBtn').on('click', function(){
+		$('#editForm').ajaxSubmit({
+			url: basePath + 'zuul/id',
+			type: 'post',
+			dataType: 'json',
+			success: function(data){
+				$('#editModal').modal('close');
+				layer.confirm('操作成功，是否需要刷新？', {icon: 1, title:'提示'}, function(index){
+					$('#queryBtn').trigger('click');
+					layer.close(index);
+				});
+			}
+		});
+	});
+	
+	$('#tableBody').on('click', '.toEnable', function(){
+		var id = $(this).data('id');
+		enable(id, true);
+	});
+	
+	$('#tableBody').on('click', '.toDisable', function(){
+		var id = $(this).data('id');
+		enable(id, false);
+	});
+	
+	function enable(id, enable){
+		layer.confirm('是否确认要' + $.enums('enable.' + enable) + '此项配置？', {icon: 3, title:'提示'}, function(index){
+			$.ajax({
+				url: basePath + 'zuul/id/' + id,
+				type: 'put',
+				data: {
+					enable: enable
+				},
+				dataType: 'json',
+				success: function(data){
+					layer.confirm('操作成功，是否需要刷新？', {icon: 1, title:'提示'}, function(callbackIndex){
+						$('#queryBtn').trigger('click');
+						layer.close(callbackIndex);
+					});
+				}
+			});
+			layer.close(index);
+		});
+	}
+	
+	$('#toAdd').on('click', function(){
+		$('#editForm').resetForm();
+	});
+	
+	$('#tableBody').on('click', '.toUpdate', function(){
+		var item = $(this).data('obj');
+		$('#editModal').modal('open');
+		$('#editForm').find('input, select').each(function(){
+			$(this).val(item[$(this).attr('name')] + '');
+		});
+	});
+	
+	$('#tableBody').on('click', '.toDelete', function(){
+		var id = $(this).data('id');
+		layer.confirm('是否确认要删除此项配置？', {icon: 3, title:'提示'}, function(index){
+			$.ajax({
+				url: basePath + 'zuul/id/' + id,
+				type: 'delete',
+				dataType: 'json',
+				success: function(data){
+					layer.confirm('操作成功，是否需要刷新？', {icon: 1, title:'提示'}, function(callbackIndex){
+						$('#queryBtn').trigger('click');
+						layer.close(callbackIndex);
+					});
+				}
+			});
+			layer.close(index);
+		});
+	});
+	
+	$(function(){
+		$('#queryBtn').trigger('click');
+	});
+})();
+</script>
+</body>
+</html>

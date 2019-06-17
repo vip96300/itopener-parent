@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itopener.tools.zuul.ratelimiter.admin.mapper.ZuulPathLimiterMapper">
+
+	<resultMap id="BaseResultMap" type="com.itopener.tools.zuul.ratelimiter.admin.model.ZuulPathLimiter">
+		<id column="id" property="id" jdbcType="BIGINT" />
+		<result column="zuul_id" property="zuulId" jdbcType="VARCHAR" />
+		<result column="path" property="path" jdbcType="VARCHAR" />
+		<result column="permits_per_second" property="permitsPerSecond" jdbcType="DECIMAL" />
+		<result column="permits" property="permits" jdbcType="INTEGER" />
+		<result column="timeout" property="timeout" jdbcType="BIGINT" />
+		<result column="time_unit" property="timeUnit" jdbcType="VARCHAR" />
+		<result column="status_code" property="statusCode" jdbcType="INTEGER" />
+		<result column="error_cause" property="errorCause" jdbcType="VARCHAR" />
+		<result column="enable" property="enable" jdbcType="BIT" />
+	</resultMap>
+
+	<sql id="Insert_Column_List">
+		zuul_id, path, permits_per_second, permits, timeout, time_unit, status_code, error_cause, enable
+	</sql>
+
+	<sql id="Column_List">
+		id, <include refid="Insert_Column_List" />
+	</sql>
+
+	<sql id="Where">
+		<where>
+			<if test="path != null and path != ''">
+				and path = #{path,jdbcType=VARCHAR}
+			</if>
+			<if test="zuulId != null and zuulId != ''">
+				and zuul_id = #{zuulId,jdbcType=VARCHAR}
+			</if>
+			<if test="id > 0">
+				and id = #{id,jdbcType=BIGINT}
+			</if>
+		</where>
+	</sql>
+
+	<select id="select" parameterType="com.itopener.tools.zuul.ratelimiter.admin.conditions.ZuulPathLimiterCondition" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from zuul_path_limiter
+		<include refid="Where" />
+		<if test="orderBy != null and orderBy != ''">
+			order by ${orderBy}
+		</if>
+	</select>
+
+	<select id="selectCount" parameterType="com.itopener.tools.zuul.ratelimiter.admin.conditions.ZuulPathLimiterCondition" resultType="java.lang.Long">
+		select count(id)
+		from zuul_path_limiter
+		<include refid="Where" />
+	</select>
+
+	<select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+		select <include refid="Column_List" />
+		from zuul_path_limiter
+		where id = #{id,jdbcType=BIGINT}
+	</select>
+
+	<!-- 新增 -->
+	<insert id="insert" parameterType="com.itopener.tools.zuul.ratelimiter.admin.model.ZuulPathLimiter">
+		insert into zuul_path_limiter(<include refid="Insert_Column_List" />)
+		values (
+			#{zuulId,jdbcType=VARCHAR},
+			#{path,jdbcType=VARCHAR},
+			#{permitsPerSecond,jdbcType=DECIMAL},
+			#{permits,jdbcType=INTEGER},
+			#{timeout,jdbcType=BIGINT},
+			#{timeUnit,jdbcType=VARCHAR},
+			#{statusCode,jdbcType=INTEGER},
+			#{errorCause,jdbcType=VARCHAR},
+			#{enable,jdbcType=BIT})
+	</insert>
+
+	<update id="update" parameterType="com.itopener.tools.zuul.ratelimiter.admin.model.ZuulPathLimiter">
+		update zuul_path_limiter
+		set
+			zuul_id = #{zuulId,jdbcType=VARCHAR},
+			path = #{path,jdbcType=VARCHAR},
+			permits_per_second = #{permitsPerSecond,jdbcType=DECIMAL},
+			permits = #{permits,jdbcType=INTEGER},
+			timeout = #{timeout,jdbcType=BIGINT},
+			time_unit = #{timeUnit,jdbcType=VARCHAR},
+			status_code = #{statusCode,jdbcType=INTEGER},
+			error_cause = #{errorCause,jdbcType=VARCHAR},
+			enable = #{enable,jdbcType=BIT}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	
+	<update id="updateEnable" parameterType="com.itopener.tools.zuul.ratelimiter.admin.model.ZuulIdLimiter">
+		update zuul_path_limiter
+		set enable = #{enable,jdbcType=BIT}
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+
+	<delete id="delete" parameterType="com.itopener.tools.zuul.ratelimiter.admin.model.ZuulPathLimiter">
+		delete from zuul_path_limiter
+		where id = #{id,jdbcType=BIGINT}
+	</delete>
+</mapper>

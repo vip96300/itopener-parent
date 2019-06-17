@@ -1,0 +1,60 @@
+<div class="am-cf am-padding-xs am-padding-bottom-0">
+	<div class="am-fl am-cf">
+		<strong class="am-text-primary am-text-lg">Zookeeper管理工具</strong> / <small>信息</small>
+	</div>
+	<div class="am-fr am-cf">
+		<button type="button" class="am-btn am-btn-xs am-btn-primary" id="refreshBtn">
+			<i class="am-icon-refresh"></i>&nbsp;刷新
+		</button>
+	</div>
+</div>
+<hr class="am-margin-xs"/>
+<div class="am-g">
+	<ul class="am-avg-sm-1 am-avg-md-1 am-avg-lg-1 am-thumbnails" id="infoContent">
+	
+	</ul>
+</div>
+<div class="am-hide" id="infoTmpl">
+	<div class="am-scrollable-horizontal">
+		<table class="am-table am-table-bordered am-table-striped am-table-hover am-table-compact am-table-centered am-margin-bottom-xs">
+			<thead>
+				<tr>
+					<th>指标</th>
+					<th>指标值</th>
+					<th>说明</th>
+				</tr>
+			</thead>
+			<tbody id="tableBody"></tbody>
+		</table>
+	</div>
+</div>
+<script>
+(function(){
+	var redisInfoMapping = {
+		'connectionTimeoutMs': '超时时间（毫秒）',
+		'currentConnectionString': '当前链接（the current known connection string - not guaranteed to be correct value at any point in the future.）',
+		'instanceIndex': 'Every time a new ZooKeeper instance is allocated, the "instance index" is incremented.'
+	}
+	$('#refreshBtn').on('click', function(){
+		$.ajax({
+			url: basePath + 'zk/info',
+			type: 'get',
+			dataType: 'json',
+			success: function(data){
+				$('#infoContent').empty();
+				$('#infoTmpl #tableBody').empty();
+				for(var key in data.info){
+					$('#infoTmpl #tableBody').append('<tr><td>' + key + '</td><td>' + data.info[key] + '</td><td>' + ($.getjson(redisInfoMapping, key) || '') + '</td></tr>');
+				}
+				var html = $.format($('#infoTmpl').html(), data.info[key]);
+				$('#infoContent').append(html);
+			}
+		});
+	});
+	$(function(){
+		$('#refreshBtn').trigger('click');
+	});
+})();
+</script>
+</body>
+</html>
